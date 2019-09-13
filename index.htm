@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <title>Aplicación Demo</title>
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    
+    <!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	
+	<!-- CSS para Bootstrap de Dinamica -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.helper.css" />
+    
+	<!--biblioteca generica JS/Dinamica-->
+	<script type="text/javascript" src="action/script">
+	</script>
+
+	<script type="text/javascript">
+	
+		if (top.frames.length!=0) {
+		    if (window.location.href.replace)
+		        top.location.replace(self.location.href);
+		    else
+		        top.location.href=self.document.href;
+		}
+		
+		onload = function() { 
+			displayLogin();
+		} 
+		
+		//ejecutar login
+		function login() {
+			try {
+				clearErrorMessages();
+				document.getElementById("loginbutton").disabled=true;
+				return ajaxCall(	httpMethod="POST", 
+									uri="/action/security/login", 
+									divResponse="form_error", 
+									divProgress="status", 
+									formName="form1", 
+									afterResponseFn=null, 
+									onErrorFn=enableLoginButton);	
+			} catch(err) {
+				alert("La página no cargó completa, por favor recargue la página con F5.")
+				return false;	
+			}
+		}
+		
+		//rehabilitar boton de login en caso de error
+		function enableLoginButton() {
+			document.getElementById("loginbutton").disabled=false;
+		}
+		
+		//mostrar form de login
+		function displayLogin() {
+			document.getElementById("form1").style.display="";
+			document.getElementById("form2").style.display="none";
+			setFocusOnForm("form1");
+		}
+		
+		//mostrar form de forgot password
+		function displayForgotPass() {
+			document.getElementById("grabar").disabled=false;
+			document.getElementById("form1").style.display="none";
+			document.getElementById("form2").style.display="";
+			clearForm("form2");
+			setFocusOnForm("form2");
+		}
+		
+		//regenerar password
+		function getNewPassword() {		
+
+			document.getElementById("grabar").disabled=true;
+			clearErrorMessages();
+				
+			//llamada Ajax...
+			return ajaxCall(httpMethod="POST", 
+								uri="/action/security/forgotpass/generate", 
+								divResponse=null, 
+								divProgress="status2", 
+								formName="form2", 
+								afterResponseFn=null, 
+								onErrorFn=newPasswordFail);	
+		}
+		
+		//esconder formulario de nuevo login
+		function newPasswordOK() {
+			document.getElementById("form2").style.display="none";
+		}
+
+		//rehabilitar boton de regenerar password en caso de error
+		function newPasswordFail() {
+			document.getElementById("grabar").disabled=false;
+		}
+		
+		//mostrar imagen y esconder su indicador de progreso de carga
+		function displayCaptcha(captchaID) {
+			document.getElementById("status2").style.display='none';
+			document.getElementById(captchaID).style.display='';
+		}	
+
+		//regenerar captcha
+		function reloadCaptcha(captchaID) {
+			document.getElementById("status2").style.display='';
+			document.getElementById(captchaID).src = "action/security/getcaptcha?dummy=" + Math.random();
+		}
+	</script>
+
+</head>
+
+<body style="background-color:#f2f2f2; overflow:hidden">
+	
+	<!-- recuadro principal -->
+	<div class="container main">
+	
+		<!-- nombre del sistema -->
+		<div style="float:left;width:30%;margin-left:10px;margin-top:5px;">
+
+			<h2><strong>Aplicación Demo</strong></h2>
+
+			<p style="font-size:10pt;">
+			Martín Córdova y Asociados, C.A.<br/>
+			RIF: J-31134803-4<br/> 
+			</p>
+
+		</div>
+	
+		<!-- formularios -->
+		<div class="container mainform">
+
+			<!--login form-->
+			<div class="panel panel-info" id="form1">
+				  <div class="panel-heading">
+				  	<h3 class="panel-title">
+				  		<strong>Ingresar al Sistema</strong>
+				  		<span style="float: right;">
+				  			<span id="status" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="display:none;margin-right:20px;"></span>
+				  		</span>
+				  	</h3>
+				  </div>
+				  <div class="panel-body">
+	
+				   	<form name="form1" onsubmit="return login()">
+	
+						<div class="form-group">
+						  	<label for="userlogin">Identificador</label>
+						  	<input name="userlogin" id="userlogin" type="text" maxlength="100" autocomplete="off" class="form-control" placeholder="Ingresar identificador">
+						</div>
+					  
+						<div class="form-group">
+						  	<label for="passwd">Contraseña <a href="javascript:displayForgotPass()">(Olvidé mi contraseña)</a></label>
+						  	<input name="passwd" id="passwd" type="password" maxlength="40" autocomplete="off" class="form-control" placeholder="Ingresar contraseña">
+						</div>
+					  
+					  	<button type="submit" class="btn btn-sm btn-success" id="loginbutton">Ingresar</button>
+					  	
+					  	<!--URI to navigate after sucessful login-->
+						<input type="hidden" name="uri" value="/action/security/home">
+					</form>
+	
+				  </div>
+			</div>
+			<!-- end login form -->
+			
+			<!--password form-->	
+			<div class="panel panel-info" style="display: none" id="form2">
+				  <div class="panel-heading">
+				  	<h3 class="panel-title">
+				  		<strong>Regenerar contraseña</strong>
+				  		<span style="float: right;">
+				  			<span id="status2" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="display:none;margin-right:20px;"></span>
+				  		</span>
+				  	</h3>
+				  </div>
+				  <div class="panel-body">
+	
+				   	<form name="form2" onsubmit="return getNewPassword()">
+	
+						<div class="form-group">
+						  	<label for="userlogin2">Identificador</label>
+						  	<input name="userlogin2" id="userlogin2" type="text" maxlength="100" autocomplete="off" class="form-control" placeholder="Ingresar identificador">
+						</div>
+					  
+						<div class="form-group">
+						  	<label for="email">Email</label>
+						  	<input id="email" name="email" type="text" maxlength="100" autocomplete="off" class="form-control" placeholder="Ingresar email">
+						</div>
+						
+						<div class="form-group">
+							<img id="captchaimg" src="action/security/getcaptcha" border="1" onload="displayCaptcha('captchaimg')" 
+								onclick="reloadCaptcha('captchaimg')" style="display:block;cursor: pointer;border-radius: 5px;border: 1px dotted black;" title="Haga clic para regenerar la imagen">
+						</div>
+					  
+					  	<div class="form-group">
+							<label for="email">Anti-Spam</label>
+							<input id="captcha" name="captcha" type="text" maxlength="6" style="display:block;" placeholder="Ingresar caracteres de la imagen" class="form-control">
+						</div>
+						
+					  	<button id="grabar" type="submit" class="btn btn-sm btn-success">Regenerar</button>
+					  	<button id="cancelar" type="button" class="btn btn-sm btn-default" onclick="displayLogin();">Cancelar</button>
+					  	
+					</form>
+	
+				  </div>
+			</div>
+			<!-- end password form -->		
+			
+		</div>
+	
+	</div>
+
+	<!--marca especial para que el codigo Ajax pueda reconocer un redirect a login-->
+	<span style="display:none">_ajax_VE8374yz_</span>
+
+</body>
+
+</html>
